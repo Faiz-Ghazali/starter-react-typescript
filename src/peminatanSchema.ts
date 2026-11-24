@@ -1,20 +1,16 @@
-// src/schemas/pendaftaranSchema.ts
-import { z } from "zod";
+import {z} from "zod";
+export const peminatanSchema = z.object({
+  nama: z.string().min(3,"Minimal 3 karakter").max(30,"Maksimal 30 karakter"),
+  NIS: z.number({error: "NIS Wajib diisi"}).max(99999,"maksimal 99999"),
+  umur:z.number({error: "Umur Wajib diisi"}).max(99,"maksimal 99"),
+  keahlian:z.array(z.enum(["html", "css", "javascript", "react"])).min(1, "Wajib Diisi"),
+  pilihanDivisi: z.enum(["frontend", "backend", "ui/ux"], {
+    error: "Divisi harus dipilih",}),
+  ketentuan: z
+    .boolean()
+    .refine((accepted) => accepted, "Wajib menyetujui ketentuan"),
+})
 
-export enum DivisiIT {
-  WEB = "WEB_DEVELOPMENT",
-  MOBILE = "MOBILE_DEVELOPMENT",
-  CYBER = "CYBER_SECURITY",
-}
+export type PeminatanFormData = z.infer<typeof peminatanSchema>;
 
-export const pendaftaranSchema = z.object({
-  namaLengkap: z.string().min(3, { message: "Nama santri minimal 3 huruf" }),
-  umur: z.number().min(12, { message: "Umur minimal 12 tahun" }),
-  email: z.string().email({ message: "Format email tidak valid" }),
-  divisi: z.nativeEnum(DivisiIT),
-  motivasi: z.string().min(10, { message: "Tuliskan motivasi minimal 10 karakter" }),
-});
-
-export type PendaftaranFormData = z.infer<typeof pendaftaranSchema>;
-
-export default pendaftaranSchema;
+export default peminatanSchema;
