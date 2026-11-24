@@ -1,186 +1,209 @@
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import peminatanSchema from "./peminatanSchema";
+import pendaftaranSchema, {
+  DivisiIT,
+  type PendaftaranFormData,
+} from "./PeminatanSchema";
 
-function PeminatanFormJS() {
-  const [submittedData, setSubmittedData] = useState(null);
+export interface FormSantriProps {
+  judulForm: string;
+  kuotaTersedia: number;
+  isOpen: boolean;
+}
+
+export function FormulirPendaftaranSantri(props: FormSantriProps) {
+  // Menyimpan seluruh objek data hasil submit (bukan sekadar string)
+  const [submittedData, setSubmittedData] = useState<PendaftaranFormData | null>(null);
+
   const {
     register,
     control,
     handleSubmit,
     formState: { errors, isValid },
-  } = useForm({
+    reset,
+  } = useForm<PendaftaranFormData>({
     mode: "onChange",
-    resolver: zodResolver(peminatanSchema),
+    resolver: zodResolver(pendaftaranSchema),
     defaultValues: {
-      nama: "Jane Doe",
-      NIS: 12345,
-      umur: 15,
-      persyaratan: true,
-      keahlian: ["html", "react"],
-      pilihanDivisi: "frontend",
-      ketentuan: true,
+      namaLengkap: "",
+      umur: undefined,
+      email: "",
+      divisi: undefined,
+      motivasi: "",
     },
   });
 
-  function onSubmit(data) {
-    console.log("Data Submitted:", data);
+  // Memantau pilihan divisi secara real-time
+  const divisiTerpilih = useWatch({ control, name: "divisi" });
+
+  function onSubmit(data: PendaftaranFormData) {
+    console.log("Data Pendaftaran Berhasil:", data);
     setSubmittedData(data);
+    reset();
   }
 
-  const pilihanDivisi = useWatch({ control, name: "pilihanDivisi" });
+  if (!props.isOpen) {
+    return (
+      <p className="text-red-500 font-semibold">
+        Pendaftaran divisi sedang ditutup.
+      </p>
+    );
+  }
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-xl border border-gray-200 bg-card p-4 text-left shadow-md">
-      <h2 className="mb-3 text-lg font-semibold">Form Pendaftaran</h2>
+    <div className="max-w-md mx-auto p-6 bg-slate-900 border border-slate-700 rounded-2xl text-white shadow-xl">
+      <h2 className="text-xl font-bold mb-1 text-cyan-400">{props.judulForm}</h2>
+      <p className="text-xs text-slate-400 mb-4">
+        Sisa Kuota: {props.kuotaTersedia} Kursi
+      </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-        <div className="space-y-1">
-          <label className="block text-sm font-medium">Nama Siswa:</label>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Input Nama Lengkap */}
+        <div>
+          <label className="block text-xs font-semibold mb-1">
+            Nama Lengkap Santri:
+          </label>
           <input
-            {...register("nama")}
             type="text"
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Masukkan nama"
+            {...register("namaLengkap")}
+            className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:border-cyan-400 focus:outline-none"
+            placeholder="Masukkan nama santri..."
           />
-          {errors.nama && (
-            <p className="text-sm text-red-600">{errors.nama.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-1">
-          <label className="block text-sm font-medium">NIS:</label>
-          <input
-            {...register("NIS", { valueAsNumber: true })}
-            type="number"
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Masukkan NIS"
-          />
-          {errors.NIS && (
-            <p className="text-sm text-red-600">{errors.NIS.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-1">
-          <label className="block text-sm font-medium">Umur:</label>
-          <input
-            type="number"
-            {...register("umur", { valueAsNumber: true })}
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Masukkan umur"
-          />
-          {errors.umur && (
-            <p className="text-sm text-red-600">{errors.umur.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-1">
-          <label className="block text-sm font-medium">Pilihan Divisi:</label>
-          <select
-            {...register("pilihanDivisi")}
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Pilih Divisi</option>
-            <option value="frontend">Frontend</option>
-            <option value="backend">Backend</option>
-            <option value="ui/ux">UI/UX</option>
-          </select>
-          {errors.pilihanDivisi && (
-            <p className="text-sm text-red-600">
-              {errors.pilihanDivisi.message}
+          {errors.namaLengkap && (
+            <p className="text-red-400 text-xs mt-1">
+              {errors.namaLengkap.message}
             </p>
           )}
         </div>
 
-        <div className="space-y-1">
-          <label className="block text-sm font-medium">Keahlian Pilihan:</label>
-          <div className="flex flex-wrap gap-4 pt-1">
-            <label className="flex items-center gap-2 text-sm">
-              <input {...register("keahlian")} type="checkbox" value="html" />
-              HTML
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input {...register("keahlian")} type="checkbox" value="css" />
-              CSS
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                {...register("keahlian")}
-                type="checkbox"
-                value="javascript"
-              />
-              JavaScript
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input {...register("keahlian")} type="checkbox" value="react" />
-              React
-            </label>
-          </div>
-          {errors.keahlian && (
-            <p className="text-sm text-red-600">{errors.keahlian.message}</p>
+        {/* Input Umur */}
+        <div>
+          <label className="block text-xs font-semibold mb-1">
+            Umur (Tahun):
+          </label>
+          <input
+            type="number"
+            {...register("umur", { valueAsNumber: true })}
+            className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:border-cyan-400 focus:outline-none"
+            placeholder="Contoh: 16"
+          />
+          {errors.umur && (
+            <p className="text-red-400 text-xs mt-1">{errors.umur.message}</p>
           )}
         </div>
 
-        <div className="space-y-1">
-          <div className="flex gap-4 pt-1">
-            
-            <label className="flex items-center gap-2 text-sm">
-              <input {...register("ketentuan")} type="checkbox" />
-              Saya Menyetujui tata tertib divisi IT
-            </label>
-          </div>
-          {errors.ketentuan && (
-            <p className="text-sm text-red-600">{errors.ketentuan.message}</p>
+        {/* Input Email */}
+        <div>
+          <label className="block text-xs font-semibold mb-1">
+            Email Aktif:
+          </label>
+          <input
+            type="email"
+            {...register("email")}
+            className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:border-cyan-400 focus:outline-none"
+            placeholder="santri@abudzar.sch.id"
+          />
+          {errors.email && (
+            <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>
           )}
         </div>
 
+        {/* Pilihan Divisi (Dropdown Enum) */}
+        <div>
+          <label className="block text-xs font-semibold mb-1">
+            Pilih Divisi IT:
+          </label>
+          <select
+            {...register("divisi")}
+            className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:border-cyan-400 focus:outline-none text-white"
+          >
+            <option value="">-- Pilih Salah Satu --</option>
+            {Object.values(DivisiIT).map((divisi) => (
+              <option key={divisi} value={divisi}>
+                {divisi}
+              </option>
+            ))}
+          </select>
+          {errors.divisi && (
+            <p className="text-red-400 text-xs mt-1">{errors.divisi.message}</p>
+          )}
+        </div>
+
+        {/* Input Motivasi */}
+        <div>
+          <label className="block text-xs font-semibold mb-1">
+            Motivasi Belajar:
+          </label>
+          <textarea
+            rows={3}
+            {...register("motivasi")}
+            className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:border-cyan-400 focus:outline-none"
+            placeholder="Tuliskan motivasi antum bergabung di divisi ini..."
+          />
+          {errors.motivasi && (
+            <p className="text-red-400 text-xs mt-1">
+              {errors.motivasi.message}
+            </p>
+          )}
+        </div>
+
+        {/* Indikator Status Validasi Real-Time */}
         <p
-          className={`text-sm font-medium ${
-            isValid ? "text-green-600" : "text-red-600"
+          className={`text-xs font-medium ${
+            isValid ? "text-emerald-400" : "text-red-400"
           }`}
         >
           {isValid
-            ? "✓ Siap dikirim karena inputan valid"
+            ? "✓ Siap dikirim karena semua inputan valid"
             : "✕ Belum siap dikirim karena ada inputan yang belum valid"}
         </p>
-        {pilihanDivisi && <p>Divisi dipilih: {pilihanDivisi}</p>}
+
+        {/* Pratinjau Pilihan Divisi dari useWatch */}
+        {divisiTerpilih && (
+          <p className="text-xs text-cyan-300">
+            Divisi dipilih: <span className="font-semibold">{divisiTerpilih}</span>
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={!isValid}
-          className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-20"
+          className="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all text-white shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
         >
-          Kirim Pendaftaran
+          Kirim Formulir Pendaftaran
         </button>
       </form>
+
+      {/* Ringkasan Data Setelah Berhasil Submit */}
       {submittedData && (
         <section
-          className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4"
+          className="mt-5 rounded-xl border border-emerald-500/50 bg-emerald-950/60 p-4"
           aria-live="polite"
         >
-          <h3 className="mb-2 font-semibold text-green-800">
-            Pendaftaran Berhasil
+          <h3 className="mb-2 text-sm font-bold text-emerald-300">
+            Alhamdulillah, Pendaftaran Berhasil
           </h3>
-          <dl className="space-y-1 text-sm text-gray-700">
+          <dl className="space-y-1 text-xs text-slate-200">
             <div>
-              <dt className="inline font-medium">Nama: </dt>
-              <dd className="inline">{submittedData.nama}</dd>
+              <dt className="inline font-semibold text-slate-400">Nama: </dt>
+              <dd className="inline">{submittedData.namaLengkap}</dd>
             </div>
             <div>
-              <dt className="inline font-medium">NIS: </dt>
-              <dd className="inline">{submittedData.NIS}</dd>
+              <dt className="inline font-semibold text-slate-400">Umur: </dt>
+              <dd className="inline">{submittedData.umur} tahun</dd>
             </div>
             <div>
-              <dt className="inline font-medium">Umur: </dt>
-              <dd className="inline">{submittedData.umur}</dd>
+              <dt className="inline font-semibold text-slate-400">Email: </dt>
+              <dd className="inline">{submittedData.email}</dd>
             </div>
             <div>
-              <dt className="inline font-medium">Divisi: </dt>
-              <dd className="inline">{submittedData.pilihanDivisi}</dd>
+              <dt className="inline font-semibold text-slate-400">Divisi: </dt>
+              <dd className="inline">{submittedData.divisi}</dd>
             </div>
             <div>
-              <dt className="inline font-medium">Keahlian: </dt>
-              <dd className="inline">{submittedData.keahlian.join(", ")}</dd>
+              <dt className="inline font-semibold text-slate-400">Motivasi: </dt>
+              <dd className="inline">{submittedData.motivasi}</dd>
             </div>
           </dl>
         </section>
@@ -189,4 +212,4 @@ function PeminatanFormJS() {
   );
 }
 
-export default PeminatanFormJS;
+export default FormulirPendaftaranSantri;
